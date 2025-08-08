@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>API Health</h2>
+<p>Status: ✅ Running</p>
+
+<h2>Documentation</h2>
+<pre>
+GET /api/download
+Parameters:
+- url (required): YouTube video URL
+- format (optional): mp4, mp3, mp3hd, mp4hd, mp42k, m4a, wav, 3gp, flv
+- lang (optional): default "en"
+- subscribed (optional): default "false"
+
+Example:
+https://ytdl-api-vercel.app/api/download?url=https://youtu.be/VIDEO_ID&format=mp4
+</pre>
+
+<h2>Health Check</h2>
+<pre>
+GET /health
+</pre>
+{% endblock %} 
