@@ -1,3 +1,4 @@
+import re
 from fastapi import FastAPI, Query
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -6,15 +7,13 @@ from fastapi.requests import Request
 import httpx
 import urllib.parse
 
-app = FastAPI(title="NoTube API", description="Unofficial NoTube API Wrapper", version="1.0.0")
+app = FastAPI(title="NoTube YouTube downloader API", description="Unofficial NoTube API Wrapper", version="1.0.0")
 
 # Serve static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Templates
 templates = Jinja2Templates(directory="templates")
 
-# Header & formats like in JS
 HEADER = {
     "Accept": "text/html, */*; q=0.01",
     "Accept-Language": "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7",
@@ -34,6 +33,15 @@ HEADER = {
 FORMATS = [
     "mp3hd", "mp4", "mp3", "mp4hd", "mp42k", "m4a", "wav", "3gp", "flv"
 ]
+
+def clean_youtube_url(url: str) -> str:
+    """
+    Extracts YouTube video ID from any format and returns a clean URL.
+    """
+    match = re.search(r"(?:youtu\.be/|youtube\.com/(?:shorts/|watch\?v=))([A-Za-z0-9_-]{11})", url)
+    if match:
+        return f"https://youtu.be/{match.group(1)}"
+    return url
 
 async def fetch_with_retry(url, data, retries=3, delay=2):
     async with httpx.AsyncClient(timeout=15) as client:
@@ -62,6 +70,9 @@ async def download(
     lang: str = Query("en", description="Language"),
     subscribed: str = Query("false", description="Subscribed status")
 ):
+    # ✅ Clean up the URL before sending to NoTube
+    url = clean_youtube_url(url)
+
     if format not in FORMATS:
         format = "mp4"
 
@@ -88,4 +99,4 @@ async def download(
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "message": "API is running", "version": "1.0.0"} 
+    return {"status": "ok", "message": "API is running", "version": "1.0.0"}
